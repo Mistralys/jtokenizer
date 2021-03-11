@@ -1,0 +1,34 @@
+{
+  "name": "mistralys/jtokenizer",
+  "description": "Modernized, composer compatible version of Tim Whitlock's JTokenizer PHP Javascript parser and tokenizer library.",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "homepage": "https://github.com/Mistralys/jtokenizer",
+  "support": {
+    "issues": "https://github.com/Mistralys/jtokenizer/issues"
+  },
+  "authors": [
+    {
+      "name": "Tim Whitlock",
+      "homepage": "https://timwhitlock.info",
+      "role": "Lead developer"
+    },
+    {
+      "name": "Sebastian Mordziol",
+      "email": "s.mordziol@mistralys.eu",
+      "homepage": "https://mistralys.eu",
+      "role": "Contributor"
+    }
+  ],
+  "autoload": {
+    "classmap": [
+      "src"
+    ],
+    "files": [
+      "src/Constants.php"
+    ]
+  },
+  "require": {
+    "php": ">=7.3"
+  }
+}
