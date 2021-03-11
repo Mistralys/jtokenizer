@@ -4,15 +4,30 @@ namespace JTokenizer;
 
 class JTokenizer extends JTokenizerBase
 {
+    /**
+     * @var JLex|null
+     */
+    private static $JLex = null;
+
     protected $regPunc = '/(?:\>\>\>\=|\>\>\>|\<\<\=|\>\>\=|\!\=\=|\=\=\=|&&|\<\<|\>\>|\|\||\*\=|\|\=|\^\=|&\=|%\=|-\=|\+\+|\+\=|--|\=\=|\>\=|\!\=|\<\=|;|,|\<|\>|\.|\]|\}|\(|\)|\[|\=|\:|\||&|-|\{|\^|\!|\?|\*|%|~|\+)/';
 
     function __construct(bool $whitespace, bool $unicode)
     {
         parent::__construct($whitespace, $unicode);
-        $this->Lex = Lex::get('JLex');
+
+        $this->Lex = self::getJLex();
     }
 
-    public static function getTokens(string $src, bool $whitespace = true, bool $unicode = true)
+    private static function getJLex() : JLex
+    {
+        if(!isset(self::$JLex)) {
+            self::$JLex = new JLex();
+        }
+
+        return self::$JLex;
+    }
+
+    public static function getTokens(string $src, bool $whitespace = true, bool $unicode = true) : array
     {
         $Tokenizer = new JTokenizer($whitespace, $unicode);
 
@@ -21,8 +36,6 @@ class JTokenizer extends JTokenizerBase
 
     public static function getTokenName($t)
     {
-        $Lex = Lex::get('JLex');
-
-        return $Lex->name($t);
+        return self::getJLex()->name($t);
     }
 }
