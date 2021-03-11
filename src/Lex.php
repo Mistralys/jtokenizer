@@ -4,38 +4,40 @@ namespace JTokenizer;
 
 abstract class Lex
 {
-    private static $singletons = array();
+    const ERROR_UNKNOWN_SYMBOL = 81701;
+    const ERROR_UNKNOWN_LITERAL_SYMBOL = 81702;
+
+    /**
+     * @var int
+     */
     protected $i;
-    protected $names = array(P_EPSILON => 'P_EPSILON', P_EOF => 'P_EOF', P_GOAL => 'P_GOAL',);
+
+    /**
+     * @var array<int,string>
+     */
+    protected $names = array(
+        P_EPSILON => 'P_EPSILON',
+        P_EOF => 'P_EOF',
+        P_GOAL => 'P_GOAL'
+    );
+
+    /**
+     * @var array<string,int>
+     */
     protected $literals = array();
 
-    function __construct($i = null)
+    function __construct(int $i = 0)
     {
-        if (!is_null($i)) {
-            $this->i = (int)$i;
-        }
+        $this->i = $i;
     }
 
-    function destroy()
+    public function destroy() : void
     {
-        $class = get_class($this);
-        unset(self::$singletons[$class]);
         unset($this->names);
         unset($this->literals);
     }
 
-    static function get($class)
-    {
-        $class = '\JTokenizer\\'.$class;
-
-        if (!isset(self::$singletons[$class])) {
-            self::$singletons[$class] = new $class;
-        }
-
-        return self::$singletons[$class];
-    }
-
-    function defined($c)
+    function defined($c) : bool
     {
         if (isset($this->literals[$c])) {
             return true;
@@ -48,26 +50,45 @@ abstract class Lex
         return isset($this->names[$i]) && $this->names[$i] === $c;
     }
 
-    function name($i)
+    /**
+     * @param string|int $i
+     * @return string
+     * @throws JException
+     *
+     * @see Lex::ERROR_UNKNOWN_LITERAL_SYMBOL
+     * @see Lex::ERROR_UNKNOWN_SYMBOL
+     */
+    function name($i) : string
     {
-        if (is_int($i)) {
-            if (!isset($this->names[$i])) {
-                trigger_error("symbol " . var_export($i, true) . " is unknown in " . get_class($this), E_USER_NOTICE);
-
-                return 'UNKNOWN';
-            } else {
+        if (is_int($i))
+        {
+            if (isset($this->names[$i])) {
                 return $this->names[$i];
             }
-        } else {
-            if (!isset($this->literals[$i])) {
-                trigger_error("literal symbol " . var_export($i, true) . " is unknown in " . get_class($this), E_USER_NOTICE);
-            }
+
+            throw new JException(
+                "The symbol " . var_export($i, true) . " is unknown in " . get_class($this),
+                self::ERROR_UNKNOWN_SYMBOL
+            );
         }
 
-        return $i;
+        $literal = strval($i);
+
+        if (isset($this->literals[$literal])) {
+            return $literal;
+        }
+
+        throw new JException(
+            sprintf(
+                "The literal symbol [%s] is unknown in [%s].",
+                $literal,
+                get_class($this)
+            ),
+            self::ERROR_UNKNOWN_LITERAL_SYMBOL
+        );
     }
 
-    function implode($s, array $a)
+    function implode($s, array $a) : string
     {
         $b = array();
         foreach ($a as $t) {
