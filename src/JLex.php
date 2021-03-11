@@ -86,11 +86,6 @@ class JLex extends JLexBase
     {
         return isset($this->words[$s]) ? $this->words[$s] : false;
     }
-
-    static function singleton()
-    {
-        return Lex::get(__CLASS__);
-    }
 }
 
 
