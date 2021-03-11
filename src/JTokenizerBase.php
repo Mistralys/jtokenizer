@@ -4,6 +4,8 @@ namespace JTokenizer;
 
 abstract class JTokenizerBase
 {
+    const ERROR_NOTHING_EXTRACTED = 81601;
+
     /**
      * @var int
      */
@@ -45,6 +47,12 @@ abstract class JTokenizerBase
     private $regNumber = '/^(?:0x[A-F0-9]+|\d*\.\d+(?:E(?:\+|\-)?\d+)?|\d+)/i';
     private $regComment = '/^\/\/.*/';
     private $regCommentMulti = '/^\/\*.*\*\//Us';
+
+    /**
+     * @var JMessage[]
+     */
+    private $messages = array();
+
     protected $regPunc;
     protected $Lex;
 
@@ -79,6 +87,7 @@ abstract class JTokenizerBase
         $this->line = 1;
         $this->col = 1;
         $this->divmode = false;
+        $this->messages = array();
     }
 
     function get_all_tokens(string $src) : array
@@ -93,14 +102,18 @@ abstract class JTokenizerBase
         return $tokens;
     }
 
-    function get_next_token()
+    /**
+     * @return array<mixed>|null
+     * @throws JException
+     */
+    private function get_next_token() : ?array
     {
         $r = null;
 
         $c = $this->src[0];
         if ($c === '"') {
             if (!preg_match($this->regDQuote, $this->src, $r)) {
-                trigger_error("Unterminated string constant on line $this->line", E_USER_NOTICE);
+                $this->addMessage("Unterminated string constant on line $this->line", E_USER_NOTICE);
                 $s = $t = '"';
             } else {
                 $s = $r[0];
@@ -109,7 +122,7 @@ abstract class JTokenizerBase
             $this->divmode = true;
         } else if ($c === "'") {
             if (!preg_match($this->regSQuote, $this->src, $r)) {
-                trigger_error("Unterminated string constant on line $this->line", E_USER_NOTICE);
+                $this->addMessage("Unterminated string constant on line $this->line", E_USER_NOTICE);
                 $s = $t = "'";
             } else {
                 $s = $r[0];
@@ -133,7 +146,7 @@ abstract class JTokenizerBase
                     } else {
                         if (!$this->divmode) {
                             if (!preg_match($this->regRegex, $this->src, $r)) {
-                                trigger_error("Bad regular expression literal on line $this->line", E_USER_NOTICE);
+                                $this->addMessage("Bad regular expression literal on line $this->line", E_USER_NOTICE);
                                 $s = $t = '/';
                                 $this->divmode = false;
                             } else {
@@ -191,7 +204,7 @@ abstract class JTokenizerBase
                                 } else {
                                     preg_match($this->regJunk, $this->src, $r);
                                     $s = $t = $r[0];
-                                    trigger_error("Junk on line $this->line, $s", E_USER_NOTICE);
+                                    $this->addMessage("Junk on line $this->line, $s", E_USER_NOTICE);
                                 }
                             }
                         }
@@ -201,7 +214,10 @@ abstract class JTokenizerBase
         }
         $len = strlen($s);
         if ($len === 0) {
-            throw new \Exception('Failed to extract anything');
+            throw new JException(
+                'Failed to extract anything',
+                self::ERROR_NOTHING_EXTRACTED
+            );
         }
         if ($t !== false) {
             $token = array($t, $s, $this->line, $this->col);
@@ -217,5 +233,26 @@ abstract class JTokenizerBase
         }
 
         return isset($token) ? $token : null;
+    }
+
+    private function addMessage(string $string, int $level) : void
+    {
+        $this->messages[] = new JMessage($string, $level);
+    }
+
+    /**
+     * @return JMessage[]
+     */
+    public function getMessages() : array
+    {
+        return $this->messages;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasMessages() : bool
+    {
+        return !empty($this->messages);
     }
 }
