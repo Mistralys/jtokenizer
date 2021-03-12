@@ -20,6 +20,19 @@ $tokens = \JTokenizer\JTokenizer::getTokens($source);
 a column number as well as a line number. Additionally there is the static `getTokenName()`
 method that acts like the PHP `token_name` function.
 
+## Token information
+
+The `getTokens()` method returns an indexed array with a list of token arrays. Each token 
+array is an indexed array with the following information:
+
+1) Token identifier
+2) Matched literal
+3) Line number
+4) Column number
+
+The token identifier can be either an Integer, or a string. To get the according token
+type name, use the `getTokenName()` method.
+
 ## Source
 
 Derived from Tim Whitlock's JTokenizer package, released back in 2009. As far as 
