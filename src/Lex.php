@@ -51,28 +51,28 @@ abstract class Lex
     }
 
     /**
-     * @param string|int $i
+     * @param string|int $identifier
      * @return string
      * @throws JException
      *
      * @see Lex::ERROR_UNKNOWN_LITERAL_SYMBOL
      * @see Lex::ERROR_UNKNOWN_SYMBOL
      */
-    function name($i) : string
+    function name($identifier) : string
     {
-        if (is_int($i))
+        if (is_int($identifier))
         {
-            if (isset($this->names[$i])) {
-                return $this->names[$i];
+            if (isset($this->names[$identifier])) {
+                return $this->names[$identifier];
             }
 
             throw new JException(
-                "The symbol " . var_export($i, true) . " is unknown in " . get_class($this),
+                "The symbol " . var_export($identifier, true) . " is unknown in " . get_class($this),
                 self::ERROR_UNKNOWN_SYMBOL
             );
         }
 
-        $literal = strval($i);
+        $literal = strval($identifier);
 
         if (isset($this->literals[$literal])) {
             return $literal;
