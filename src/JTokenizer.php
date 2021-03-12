@@ -4,6 +4,8 @@ namespace JTokenizer;
 
 class JTokenizer extends JTokenizerBase
 {
+    const ERROR_FILE_CANNOT_BE_READ = 81801;
+
     /**
      * @var JLex|null
      */
@@ -27,6 +29,44 @@ class JTokenizer extends JTokenizerBase
         return self::$JLex;
     }
 
+    /**
+     * Parses the target javascript file, and returns all tokens.
+     *
+     * @param string $path
+     * @param bool $whitespace
+     * @param bool $unicode
+     * @return array<mixed>
+     * @throws JException
+     */
+    public static function getFileTokens(string $path, bool $whitespace=true, bool $unicode=true) : array
+    {
+        $content = file_get_contents($path);
+
+        if($content !== false) {
+            return self::getTokens($content, $whitespace, $unicode);
+        }
+
+        throw new JException(
+            'Could not get contents from target file [%s].',
+            self::ERROR_FILE_CANNOT_BE_READ
+        );
+    }
+
+    /**
+     *
+     * Returns an indexed array with a list of token arrays. Each
+     * token array is an indexed array with the following information:
+     *
+     * - Token identifier
+     * - Matched literal
+     * - Line number
+     * - Column number
+     *
+     * @param string $src
+     * @param bool $whitespace
+     * @param bool $unicode
+     * @return array
+     */
     public static function getTokens(string $src, bool $whitespace = true, bool $unicode = true) : array
     {
         $Tokenizer = new JTokenizer($whitespace, $unicode);
