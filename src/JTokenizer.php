@@ -74,8 +74,13 @@ class JTokenizer extends JTokenizerBase
         return $Tokenizer->get_all_tokens($src);
     }
 
-    public static function getTokenName($t)
+    /**
+     * @param int|string $identifier
+     * @return string
+     * @throws JException
+     */
+    public static function getTokenName($identifier) : string
     {
-        return self::getJLex()->name($t);
+        return self::getJLex()->name($identifier);
     }
 }
