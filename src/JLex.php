@@ -82,10 +82,12 @@ class JLex extends JLexBase
         'public' => J_PUBLIC
     );
 
-    public function is_word(string $s) : bool
+    /**
+     * @param string $s
+     * @return false|int
+     */
+    public function is_word(string $s)
     {
         return isset($this->words[$s]) ? $this->words[$s] : false;
     }
 }
-
-
