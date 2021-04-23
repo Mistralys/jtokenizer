@@ -1,7 +1,21 @@
 <?php
+/**
+ * File containing the class {@see JTokenizer}.
+ *
+ * @package JTokenizer
+ * @see JTokenizer
+ */
 
 namespace JTokenizer;
 
+/**
+ * The tokenizer main class: offers static methods to tokenize
+ * JavaScript source code.
+ *
+ * @package JTokenizer
+ * @author Tim Whitlock
+ * @author Sebastian Mordziol <s.mordziol@mistralys.eu>
+ */
 class JTokenizer extends JTokenizerBase
 {
     const ERROR_FILE_CANNOT_BE_READ = 81801;
@@ -11,6 +25,9 @@ class JTokenizer extends JTokenizerBase
      */
     private static $JLex = null;
 
+    /**
+     * @var string 
+     */
     protected $regPunc = '/(?:\>\>\>\=|\>\>\>|\<\<\=|\>\>\=|\!\=\=|\=\=\=|&&|\<\<|\>\>|\|\||\*\=|\|\=|\^\=|&\=|%\=|-\=|\+\+|\+\=|--|\=\=|\>\=|\!\=|\<\=|;|,|\<|\>|\.|\]|\}|\(|\)|\[|\=|\:|\||&|-|\{|\^|\!|\?|\*|%|~|\+)/';
 
     function __construct(bool $whitespace, bool $unicode)
