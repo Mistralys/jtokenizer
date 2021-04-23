@@ -12,16 +12,21 @@ tokenizer include code highlighting and simple manipulation of JavaScript source
 
 ## Quickstart
 
-Tokenize a javascript file:
+Tokenize a JavaScript file:
 
 ```php
-$source = file_get_contents('javascript.js');
-$tokens = \JTokenizer\JTokenizer::getTokens($source);
+$tokens = \JTokenizer\JTokenizer::getFileTokens('javascript.js');
 ```
 
-`getTokens()` behaves the same as the PHP `token_get_all` function, with the addition of 
-a column number as well as a line number. Additionally there is the static `getTokenName()`
-method that acts like the PHP `token_name` function.
+Tokenize a JavaScript string:
+
+```php
+$jsCode = '(JavaScript source code)';
+$tokens = \JTokenizer\JTokenizer::getTokens($jsCode);
+```
+
+Both methods behave like the PHP `token_get_all` function, with the addition of 
+a column number as well as a line number. 
 
 ## Token information
 
