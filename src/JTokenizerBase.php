@@ -53,7 +53,14 @@ abstract class JTokenizerBase
      */
     private $messages = array();
 
-    protected $regPunc;
+    /**
+     * @var string
+     */
+    protected $regPunc = '';
+
+    /**
+     * @var JLexBase
+     */
     protected $Lex;
 
     function __construct(bool $whitespace, bool $unicode)
@@ -114,52 +121,52 @@ abstract class JTokenizerBase
         if ($c === '"') {
             if (!preg_match($this->regDQuote, $this->src, $r)) {
                 $this->addMessage("Unterminated string constant on line $this->line", E_USER_NOTICE);
-                $s = $t = '"';
+                $literal = $identifier = '"';
             } else {
-                $s = $r[0];
-                $t = J_STRING_LITERAL;
+                $literal = $r[0];
+                $identifier = J_STRING_LITERAL;
             }
             $this->divmode = true;
         } else if ($c === "'") {
             if (!preg_match($this->regSQuote, $this->src, $r)) {
                 $this->addMessage("Unterminated string constant on line $this->line", E_USER_NOTICE);
-                $s = $t = "'";
+                $literal = $identifier = "'";
             } else {
-                $s = $r[0];
-                $t = J_STRING_LITERAL;
+                $literal = $r[0];
+                $identifier = J_STRING_LITERAL;
             }
             $this->divmode = true;
         } else {
             if ($c === '/') {
                 if ($this->src[1] === '/' && preg_match($this->regComment, $this->src, $r)) {
-                    $t = $this->whitespace ? J_COMMENT : false;
-                    $s = $r[0];
+                    $identifier = $this->whitespace ? J_COMMENT : false;
+                    $literal = $r[0];
                 } else {
                     if ($this->src[1] === '*' && preg_match($this->regCommentMulti, $this->src, $r)) {
-                        $s = $r[0];
+                        $literal = $r[0];
                         if ($this->whitespace) {
-                            $t = J_COMMENT;
+                            $identifier = J_COMMENT;
                         } else {
-                            $breaks = preg_match($this->regLines, $s, $r);
-                            $t = $breaks ? J_LINE_TERMINATOR : false;
+                            $breaks = preg_match($this->regLines, $literal, $r);
+                            $identifier = $breaks ? J_LINE_TERMINATOR : false;
                         }
                     } else {
                         if (!$this->divmode) {
                             if (!preg_match($this->regRegex, $this->src, $r)) {
                                 $this->addMessage("Bad regular expression literal on line $this->line", E_USER_NOTICE);
-                                $s = $t = '/';
+                                $literal = $identifier = '/';
                                 $this->divmode = false;
                             } else {
-                                $s = $r[0];
-                                $t = J_REGEX;
+                                $literal = $r[0];
+                                $identifier = J_REGEX;
                                 $this->divmode = true;
                             }
                         } else {
                             if ($this->src[1] === '=') {
-                                $s = $t = '/=';
+                                $literal = $identifier = '/=';
                                 $this->divmode = false;
                             } else {
-                                $s = $t = '/';
+                                $literal = $identifier = '/';
                                 $this->divmode = false;
                             }
                         }
@@ -167,23 +174,23 @@ abstract class JTokenizerBase
                 }
             } else {
                 if (preg_match($this->regBreak, $this->src, $r)) {
-                    $t = J_LINE_TERMINATOR;
-                    $s = $r[0];
+                    $identifier = J_LINE_TERMINATOR;
+                    $literal = $r[0];
                     $this->divmode = false;
                 } else {
                     if (preg_match($this->regWhite, $this->src, $r)) {
-                        $t = $this->whitespace ? J_WHITESPACE : false;
-                        $s = $r[0];
+                        $identifier = $this->whitespace ? J_WHITESPACE : false;
+                        $literal = $r[0];
                     } else {
                         if (preg_match($this->regNumber, $this->src, $r)) {
-                            $t = J_NUMERIC_LITERAL;
-                            $s = $r[0];
+                            $identifier = J_NUMERIC_LITERAL;
+                            $literal = $r[0];
                             $this->divmode = true;
                         } else {
                             if (preg_match($this->regWord, $this->src, $r)) {
-                                $s = $r[0];
-                                $t = $this->Lex->is_word($s) or $t = J_IDENTIFIER;
-                                switch ($t) {
+                                $literal = $r[0];
+                                $identifier = $this->Lex->is_word($literal) or $identifier = J_IDENTIFIER;
+                                switch ($identifier) {
                                     case J_IDENTIFIER;
                                         $this->divmode = true;
                                         break;
@@ -192,8 +199,8 @@ abstract class JTokenizerBase
                                 }
                             } else {
                                 if (preg_match($this->regPunc, $this->src, $r)) {
-                                    $s = $t = $r[0];
-                                    switch ($t) {
+                                    $literal = $identifier = $r[0];
+                                    switch ($identifier) {
                                         case ']':
                                         case ')':
                                             $this->divmode = true;
@@ -203,8 +210,8 @@ abstract class JTokenizerBase
                                     }
                                 } else {
                                     preg_match($this->regJunk, $this->src, $r);
-                                    $s = $t = $r[0];
-                                    $this->addMessage("Junk on line $this->line, $s", E_USER_NOTICE);
+                                    $literal = $identifier = $r[0];
+                                    $this->addMessage("Junk on line $this->line, $literal", E_USER_NOTICE);
                                 }
                             }
                         }
@@ -212,27 +219,38 @@ abstract class JTokenizerBase
                 }
             }
         }
-        $len = strlen($s);
+        $len = strlen($literal);
         if ($len === 0) {
             throw new JException(
                 'Failed to extract anything',
                 self::ERROR_NOTHING_EXTRACTED
             );
         }
-        if ($t !== false) {
-            $token = array($t, $s, $this->line, $this->col);
+        if ($identifier !== false) {
+            $token = array(
+                $identifier,
+                $literal,
+                $this->line,
+                $this->col
+            );
         }
+
         $this->src = substr($this->src, $len);
-        if ($t === J_LINE_TERMINATOR || $t === J_COMMENT) {
-            $this->line += preg_match_all($this->regLines, $s, $r);
+
+        if ($identifier === J_LINE_TERMINATOR || $identifier === J_COMMENT) {
+            $this->line += preg_match_all($this->regLines, $literal, $r);
             $cbreak = chr((int)end($r[0]));
 
-            $this->col = $len - strrpos($s, $cbreak);
+            $this->col = $len - strrpos($literal, $cbreak);
         } else {
             $this->col += $len;
         }
 
-        return isset($token) ? $token : null;
+        if(isset($token)) {
+            return $token;
+        }
+
+        return null;
     }
 
     private function addMessage(string $string, int $level) : void
