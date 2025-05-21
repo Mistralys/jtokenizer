@@ -1,9 +1,13 @@
 # JTokenizer
 
+**Archived project**: Please use [Peast][] instead, as this library is no longer actively maintained.
+
+----
+
 Modernized, composer compatible version of Tim Whitlock's JTokenizer PHP Javascript parser and tokenizer library.
 
   > NOTE: This package is a good choice for very basic access to JavaScript tokens.
-    A more modern and complete solution is Peast: https://github.com/mck89/peast
+    A more modern and complete solution is [Peast][].
 
 ## Overview
 
@@ -51,3 +55,4 @@ The original sources are here:
 
 https://timwhitlock.info/blog/2009/11/jparser-and-jtokenizer-released/
 
+[Peast]: https://github.com/mck89/peast
